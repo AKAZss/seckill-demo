@@ -1,10 +1,9 @@
 package com.zss.seckill.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wf.captcha.ArithmeticCaptcha;
-import com.zss.seckill.config.AccessLimit;
+import com.zss.seckill.anno.AccessLimit;
+import com.zss.seckill.anno.AccessLimit2;
 import com.zss.seckill.exception.GlobalException;
-import com.zss.seckill.pojo.Order;
 import com.zss.seckill.pojo.SeckillMessage;
 import com.zss.seckill.pojo.SeckillOrder;
 import com.zss.seckill.pojo.User;
@@ -13,18 +12,14 @@ import com.zss.seckill.service.IGoodsService;
 import com.zss.seckill.service.IOrderService;
 import com.zss.seckill.service.ISeckillOrderService;
 import com.zss.seckill.utils.JsonUtil;
-import com.zss.seckill.vo.GoodsVo;
 import com.zss.seckill.vo.RespBean;
 import com.zss.seckill.vo.RespBeanEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -155,7 +149,8 @@ public class SecKillController {
      * @param goodsId
      * @return
      */
-    @AccessLimit(second=5,maxCount=5,needLogin=true) // 通用接口限流
+    //@AccessLimit(second=5,maxCount=5,needLogin=true) // 通用接口限流
+    @AccessLimit2
     @RequestMapping(value = "/path",method = RequestMethod.GET)
     @ResponseBody
     public RespBean getPath(User user, Long goodsId, String captcha, HttpServletRequest request){

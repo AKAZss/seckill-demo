@@ -1,6 +1,7 @@
 package com.zss.seckill.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zss.seckill.anno.AccessLimit;
 import com.zss.seckill.pojo.User;
 import com.zss.seckill.service.IUserService;
 import com.zss.seckill.utils.CookieUtil;
@@ -12,7 +13,6 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 import org.thymeleaf.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;

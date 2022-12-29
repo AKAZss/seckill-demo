@@ -1,4 +1,4 @@
-package com.zss.seckill.config;
+package com.zss.seckill.anno;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
