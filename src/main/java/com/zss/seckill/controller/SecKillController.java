@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 @Controller
 @RequestMapping("/seckill")
 @Slf4j
-public class SecKillController implements InitializingBean {
+public class SecKillController {
     @Autowired
     private IGoodsService goodsService;
     @Autowired
@@ -197,21 +197,4 @@ public class SecKillController implements InitializingBean {
         }
     }
 
-
-    /**
-     * 初始化时执行,将商品库存加载到redis中
-     * 实现redis预减库存
-     * @throws Exception
-     */
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        List<GoodsVo> list = goodsService.findGoodsVo();
-        if(CollectionUtils.isEmpty(list)){
-            return;
-        }
-        list.forEach(goodsVo ->{
-            redisTemplate.opsForValue().set("seckillGoods:" + goodsVo.getId(),goodsVo.getStockCount());
-            EmptyStockMap.put(goodsVo.getId(),false);
-        });
-    }
 }

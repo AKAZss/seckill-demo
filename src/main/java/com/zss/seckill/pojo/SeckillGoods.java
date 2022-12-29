@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Id;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ public class SeckillGoods implements Serializable {
      * 秒杀商品ID
      */
     @TableId(value = "id", type = IdType.AUTO)
+    @Id
     private Long id;
 
     /**

@@ -1,7 +1,11 @@
 package com.zss.seckill.controller;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.zss.seckill.pojo.Goods;
+import com.zss.seckill.pojo.SeckillGoods;
 import com.zss.seckill.pojo.User;
 import com.zss.seckill.service.IGoodsService;
+import com.zss.seckill.service.ISeckillGoodsService;
 import com.zss.seckill.service.IUserService;
 import com.zss.seckill.vo.DetailVo;
 import com.zss.seckill.vo.GoodsVo;
@@ -37,6 +41,13 @@ public class GoodsController {
     private RedisTemplate redisTemplate;
     @Autowired
     private ThymeleafViewResolver thymeleafViewResolver;
+    @Autowired
+    private Cache<Long, Goods> goodsCache;
+
+    @Autowired
+    private ISeckillGoodsService seckillGoodsService;
+    @Autowired
+    private Cache<Long,SeckillGoods> seckillGoodsCache;
     /**
      * 跳转商品列表页
      * windows优化前qps:1132
@@ -85,9 +96,10 @@ public class GoodsController {
         if(!StringUtils.isEmpty(html)){
             return html;
         }
-
         model.addAttribute("user",user);
+
         GoodsVo goodsVo = goodsService.findGoodsVoByGoodsId(goodsId);
+
         Date startDate = goodsVo.getStartDate();
         Date endDate = goodsVo.getEndDate();
         Date now = new Date();
@@ -160,5 +172,25 @@ public class GoodsController {
         detailVo.setSecKillStatus(secKillStatus);
         detailVo.setUser(user);
         return RespBean.success(detailVo);
+    }
+
+    /**
+     * 使用Caffeine本地缓存查询商品
+     * @param id
+     * @return
+     */
+    @RequestMapping("/{goodsId}")
+    public Goods findGoodsById(@PathVariable("goodsId")Long id){
+        return goodsCache.get(id,key -> goodsService.getById(key));
+    }
+
+    /**
+     * 先这么写，有点耦合了
+     * @param id
+     * @return
+     */
+    @RequestMapping("/seckill/{goodsId}")
+    public SeckillGoods findSeckillGoodsById(@PathVariable("goodsId")Long id){
+        return seckillGoodsCache.get(id,key -> seckillGoodsService.getById(key));
     }
 }

@@ -1,3 +1,5 @@
+server:
+  port: 8081
 spring:
   resources:
     add-mappings: true
@@ -64,6 +66,10 @@ spring:
 mybatis-plus:
   mapper-locations: classpath*:/mapper/*Mapper.xml
   type-aliases-package: com.zss.seckill.pojo
+
+canal:
+  destination: zss # canal的集群名字，要与安装canal时设置的名称一致
+  server: 192.168.174.133:11111 # canal服务地址
 
 
 
