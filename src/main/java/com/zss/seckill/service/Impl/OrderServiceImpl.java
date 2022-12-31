@@ -61,13 +61,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         // 解决：1.sql语句的优化
         //      2.加了一个 goods_id,user_id 唯一索引
         //      3.从redis中判断是否重复秒杀
-        SeckillGoods seckillGoods = seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
-        seckillGoods.setStockCount(seckillGoods.getStockCount() - 1);
         boolean result = seckillGoodsService.update(new UpdateWrapper<SeckillGoods>().
                 setSql("stock_count = stock_count - 1").
-                eq("goods_id",goods.getId()).gt("stock_count", 0));
-        if(seckillGoods.getStockCount() < 1){
-            redisTemplate.opsForValue().set("isStockEmpty:" + goods.getId(),0);
+                eq("goods_id",goods.getId()).gt("stock_count",0));
+        if(!result){
             return null;
         }
         // 创建订单
@@ -88,8 +85,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         seckillOrder.setOrderId(order.getId());
         seckillOrder.setGoodsId(goods.getId());
         seckillOrderService.save(seckillOrder);
-        // 缓存秒杀订单
-        redisTemplate.opsForValue().set("order:" + user.getId() + ":" + goods.getId(),seckillOrder);
+
         return order;
     }
 

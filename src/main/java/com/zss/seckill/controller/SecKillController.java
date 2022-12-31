@@ -12,6 +12,7 @@ import com.zss.seckill.service.IGoodsService;
 import com.zss.seckill.service.IOrderService;
 import com.zss.seckill.service.ISeckillOrderService;
 import com.zss.seckill.utils.JsonUtil;
+import com.zss.seckill.utils.SimpleRedisLock;
 import com.zss.seckill.vo.RespBean;
 import com.zss.seckill.vo.RespBeanEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -77,35 +78,40 @@ public class SecKillController {
         if(!check){
             return RespBean.error(RespBeanEnum.REQUEST_ILLGEAL);
         }
-        // 判断是否已秒杀
-        SeckillOrder seckillOrder = (SeckillOrder) valueOperations.
-                get("order:" + user.getId() + ":" + goodsId);
-        if(seckillOrder != null){
+        // 一人一单判断通过redis
+        // 用分布式锁实现
+        SimpleRedisLock lock = new SimpleRedisLock("lock:order:" + user.getId(), redisTemplate);
+        boolean tryLock = lock.tryLock(2);
+        if(!tryLock){
             return RespBean.error(RespBeanEnum.REPEATE_ERROR);
         }
-        // 内存标记，防止库存不足一直操作redis
-        if(EmptyStockMap.get(goodsId)){
-            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        try {
+            // 内存标记，防止库存不足一直操作redis
+            if (EmptyStockMap.get(goodsId)) {
+                return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+            }
+            // 预减库存
+            //Long stock = valueOperations.decrement("seckillGoods:" + goodsId);
+            // 通过lua脚本实现原子操作
+            // 此方案有问题，超卖问题坑太多，用redission
+            Long stock = (Long) redisTemplate.
+                    execute(redisScript, Collections.singletonList("seckillGoods:" + goodsId), Collections.EMPTY_LIST);
+            if (stock < 0) {
+                EmptyStockMap.put(goodsId, true);
+                valueOperations.increment("seckillGoods" + goodsId);
+                return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+            }
+            // 下订单
+            // 此处通过rabbitmq异步下单
+            // 发送消息
+            SeckillMessage seckillMessage = new SeckillMessage(user, goodsId);
+            mqSender.sendSeckillMessage(JsonUtil.object2JsonStr(seckillMessage));
+            // 此处返回0告诉前端下单排队中
+            // 快速返回，流量削峰
+            return RespBean.success(0);
+        }finally {
+            lock.unlock();
         }
-        // 预减库存
-        //Long stock = valueOperations.decrement("seckillGoods:" + goodsId);
-        // 通过lua脚本实现原子操作
-        Long stock = (Long) redisTemplate.
-                execute(redisScript, Collections.singletonList("seckillGoods:" + goodsId), Collections.EMPTY_LIST);
-        if(stock < 0){
-            EmptyStockMap.put(goodsId,true);
-            valueOperations.increment("seckillGoods" + goodsId);
-            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
-        }
-        // 下订单
-        // 此处通过rabbitmq异步下单
-        // 发送消息
-        SeckillMessage seckillMessage = new SeckillMessage(user,goodsId);
-        mqSender.sendSeckillMessage(JsonUtil.object2JsonStr(seckillMessage));
-        // 此处返回0告诉前端下单排队中
-        // 快速返回，流量削峰
-        return RespBean.success(0);
-
 
 
         /*GoodsVo goods = goodsService.findGoodsVoByGoodsId(goodsId);

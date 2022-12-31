@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * @Auther: zss
  * @Date: 2022/12/7 11:02
- * @Description: 异常
+ * @Description: 全局异常
  */
 @Data
 @AllArgsConstructor
