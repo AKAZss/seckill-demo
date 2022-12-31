@@ -33,6 +33,7 @@ public class RedisConfig {
 
     /**
      * lua脚本设置
+     * 预见库存
      * @return
      */
     @Bean
@@ -43,4 +44,5 @@ public class RedisConfig {
         redisScript.setResultType(Long.class);
         return redisScript;
     }
+
 }
