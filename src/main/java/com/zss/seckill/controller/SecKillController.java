@@ -86,6 +86,10 @@ public class SecKillController {
             return RespBean.error(RespBeanEnum.REPEATE_ERROR);
         }
         try {
+            Object order = redisTemplate.opsForValue().get("order:" + user.getId() + ":" + goodsId);
+            if(order != null){
+                return RespBean.error(RespBeanEnum.REPEATE_ERROR);
+            }
             // 内存标记，防止库存不足一直操作redis
             if (EmptyStockMap.get(goodsId)) {
                 return RespBean.error(RespBeanEnum.EMPTY_STOCK);

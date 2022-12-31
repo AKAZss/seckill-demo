@@ -85,7 +85,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         seckillOrder.setOrderId(order.getId());
         seckillOrder.setGoodsId(goods.getId());
         seckillOrderService.save(seckillOrder);
-
+        redisTemplate.opsForValue().set("order:" + user.getId() + ":" + goods.getId(),1);
         return order;
     }
 
