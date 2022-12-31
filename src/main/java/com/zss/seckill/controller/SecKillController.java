@@ -81,6 +81,7 @@ public class SecKillController {
         // 一人一单判断通过redis
         // 用分布式锁实现
         SimpleRedisLock lock = new SimpleRedisLock("lock:order:" + user.getId(), redisTemplate);
+        // 此处有问题所在：时间不好设置
         boolean tryLock = lock.tryLock(2);
         if(!tryLock){
             return RespBean.error(RespBeanEnum.REPEATE_ERROR);
